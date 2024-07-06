@@ -53,6 +53,9 @@ bool Audio::Initialize(const GameOptions& config)
         return false;
     }
 
+    Mix_Init(MIX_INIT_MID);
+    Mix_SetTimidityCfg("timidity.cfg");
+
     // Setup audio mode
     if (Mix_OpenAudio(config.frequency, MIX_DEFAULT_FORMAT, config.soundChannels, config.chunkSize) != 0)
     {
@@ -63,7 +66,7 @@ bool Audio::Initialize(const GameOptions& config)
     Mix_AllocateChannels(config.mixingChannels);
 
     int reservedChannels = Mix_ReserveChannels(16);
-#ifndef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
     if (reservedChannels != 16)
     {
         LOG_ERROR(std::string(Mix_GetError()));
@@ -182,8 +185,26 @@ void Audio::PlayMusic(const char* musicData, size_t musicSize, bool looping)
     _MusicInfo* pMusicInfo = new _MusicInfo(musicData, musicSize, looping, m_bMusicOn ? m_MusicVolume : -1);
 
     // Playing music track takes ALOT of time for some reason so play it in another thread
-    SDL_Thread* pThread = SDL_CreateThread(SetupPlayMusicThread, "SetupPlayMusicThread", (void*)pMusicInfo);
-    SDL_DetachThread(pThread);
+    //SDL_Thread* pThread = SDL_CreateThread(SetupPlayMusicThread, "SetupPlayMusicThread", (void*)pMusicInfo);
+    //SDL_DetachThread(pThread);
+
+    SDL_RWops* pRWops = SDL_RWFromMem((void*)pMusicInfo->pMusicData, pMusicInfo->musicSize);
+    Mix_Music* pMusic = Mix_LoadMUS_RW(pRWops, 0);
+    if (!pMusic) {
+        LOG_ERROR("Mix_LoadMUS_RW: " + std::string(Mix_GetError()));
+    }
+    Mix_PlayMusic(pMusic, pMusicInfo->looping ? -1 : 0);
+
+    if (pMusicInfo->musicVolume == -1)
+    {
+        Mix_PauseMusic();
+    }
+    else
+    {
+        Mix_ResumeMusic();
+    }
+
+    SAFE_DELETE(pMusicInfo);
 }
 
 void Audio::PauseMusic()
@@ -278,7 +299,7 @@ bool Audio::PlaySound(const char* soundData, size_t soundSize, const SoundProper
 
 bool Audio::PlaySound(Mix_Chunk* sound, const SoundProperties& soundProperties)
 {
-#ifndef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
     int chunkVolume = (int)((((float)soundProperties.volume) / 100.0f) * (float)m_SoundVolume);
 
     Mix_VolumeChunk(sound, chunkVolume);
@@ -300,7 +321,7 @@ bool Audio::PlaySound(Mix_Chunk* sound, const SoundProperties& soundProperties)
         return false;
     }
 
-#ifndef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
     if (!Mix_SetPosition(channel, soundProperties.angle, soundProperties.distance))
     {
         LOG_ERROR("Mix_SetPosition: " + std::string(Mix_GetError()));

@@ -476,7 +476,7 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
         ParseValueFromXmlElem(&m_GameOptions.isFullscreenDesktop,
             displayElem->FirstChildElement("IsFullscreenDesktop"));
     }
-
+/*
 #ifdef __EMSCRIPTEN__
     SDL_Point canvasSize;
     if (Util::GetCanvasSize(canvasSize)) {
@@ -519,7 +519,7 @@ bool BaseGameApp::LoadGameOptions(const char* inConfigFile)
 
     printf("Saved resolution: %d x %d @ %f\n", savedWidth, savedHeight, savedScale);
 
-#endif
+#endif*/
 
     //-------------------------------------------------------------------------
     // Audio

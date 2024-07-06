@@ -430,7 +430,7 @@ namespace Util
         return GetSoundDurationMs(pSound.get());
     }
 
-#ifndef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
     int GetSoundDurationMs(Mix_Chunk* pSound)
     {
         uint32 points = 0;
@@ -550,13 +550,13 @@ namespace Util
         SDL_RenderPresent(pRenderer);
 #ifdef __EMSCRIPTEN__
         // Update screen manually. SDL_RenderPresent does nothing.
-        emscripten_sleep(0);
+        //emscripten_sleep(0);
 #endif
     }
 
     void Sleep(Uint32 ms) {
         if (ms > 0) {
-#ifndef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
             SDL_Delay(ms);
 #else
             emscripten_sleep(ms);

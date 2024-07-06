@@ -9,13 +9,13 @@ set(EMSCRIPTEN_PATH "CHANGE ME PLEASE!!!/emsdk")
 
 project(OpenClaw)
 
-#if(NOT CMAKE_BUILD_TYPE)
-#  set(CMAKE_BUILD_TYPE Release)
-#endif()
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto -O3")
 
 # CMake compiled directories with dependencies
 add_subdirectory(Box2D)
@@ -37,9 +37,9 @@ include_directories(./Box2D/)
 include_directories(./libwap/)
 include_directories(./ThirdParty/)
 include_directories(./ThirdParty/Tinyxml/)
-if (Emscripten)
-    include_directories("${EMSCRIPTEN_PATH}/upstream/emscripten/system/include/emscripten/")
-endif (Emscripten)
+#if (Emscripten)
+    #include_directories("${EMSCRIPTEN_PATH}/upstream/emscripten/system/include/emscripten/")
+#endif (Emscripten)
 
 # Directories with libs
 link_directories(./libwap)
@@ -74,7 +74,8 @@ if (Emscripten)
     else (Extern_Config)
         set(CONFIG_PRELOAD_FILE "--preload-file ../Build_Release/config.xml@config.xml")
     endif (Extern_Config)
-    set_target_properties(openclaw PROPERTIES LINK_FLAGS "-s FETCH -s WASM=1 -s BINARYEN_METHOD='native-wasm' -s EXPORTED_FUNCTIONS='[_main]' -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"pcx\",\"png\",\"tga\"]' -s USE_SDL_TTF=2 -s USE_SDL_GFX=2 -s ASYNCIFY=1 -s TOTAL_MEMORY=268435456 ${CONFIG_PRELOAD_FILE} --preload-file ../Build_Release/CLAW.REZ@CLAW.REZ --preload-file ../Build_Release/ASSETS.ZIP@ASSETS.ZIP --preload-file ../Build_Release/console02.tga@console02.tga --preload-file ../Build_Release/clacon.ttf@clacon.ttf")
+    set_target_properties(openclaw PROPERTIES LINK_FLAGS "-flto -O3 -o index.html -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"pcx\",\"png\",\"tga\"]' -s USE_SDL_MIXER=2 -sSDL2_MIXER_FORMATS='[\"mid\",\"wav\"]' -s USE_SDL_TTF=2 -s USE_SDL_GFX=2 -s ASYNCIFY -s TOTAL_MEMORY=256mb -s ENVIRONMENT=web -s FULL_ES2=1 -lGL ${CONFIG_PRELOAD_FILE} --preload-file ../Build_Release/CLAW.REZ@CLAW.REZ --preload-file ../Build_Release/ASSETS.ZIP@ASSETS.ZIP --preload-file ../Build_Release/console02.tga@console02.tga --preload-file ../Build_Release/clacon.ttf@clacon.ttf --preload-file ../Build_Release/dgguspat/@dgguspat/ --preload-file ../Build_Release/timidity.cfg@timidity.cfg --closure 1 -s EXPORTED_RUNTIME_METHODS=['allocate'] -Wl,-u,fileno")
+    set_target_properties(openclaw PROPERTIES OUTPUT_NAME "index")
 else (Emscripten)
     list(APPEND TARGET_LIBS
             SDL2
